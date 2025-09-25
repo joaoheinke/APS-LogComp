@@ -1,88 +1,138 @@
-(* ====================== *)
-(* FutLang — EBNF (futebol) *)
-(* ====================== *)
+(* ========================================================= *)
+(* FutLang — EBNF (tema: futebol) — Versão 1.1 (revisada)    *)
+(* ========================================================= *)
 
-programa        = { declaracao | comando } ;
+programa            = { declaracao_ou_comando } ;
 
-(* Declarações *)
-declaracao      = "jogador" ident [ "=" expr ] ";" ;
+declaracao_ou_comando
+                    = declaracao | comando ;
 
-(* Comandos *)
-comando         = atribuicao ";"
-                | acao ";"
-                | gol_stmt ";"
-                | cartao_stmt
-                | prorrogacao_stmt
-                | acrescimos_stmt
-                | bloco ;
+(* ------------------------ *)
+(* Declarações              *)
+(* ------------------------ *)
+declaracao          = "jogador" ident [ "=" expr ] ";" ;
 
-bloco           = "{" { comando } "}" ;
+(* ------------------------ *)
+(* Comandos                 *)
+(* ------------------------ *)
+comando             = atribuicao ";"
+                    | acao ";"
+                    | gol_stmt ";"
+                    | cartao_stmt
+                    | prorrogacao_stmt
+                    | acrescimos_stmt
+                    | bloco ;
 
-(* Condicional *)
-cartao_stmt     = "cartao" "(" expr ")" comando
-                  [ "substituicao" comando ] ;
+bloco               = "{" { declaracao_ou_comando } "}" ;
+(* ↑ permite declarar dentro de blocos *)
 
-(* Loop while *)
-prorrogacao_stmt= "prorrogacao" "(" expr ")" comando ;
+(* ------------------------ *)
+(* Condicional              *)
+(* ------------------------ *)
+cartao_stmt         = "cartao" "(" expr ")" comando
+                      [ "substituicao" comando ] ;
+(* if (cartao) ... else (substituicao) ... *)
 
-(* Loop for *)
-acrescimos_stmt = "acrescimos" "("
-                    atribuicao_opt ";" expr_opt ";" atribuicao_opt
-                  ")" comando ;
+(* ------------------------ *)
+(* Loop while               *)
+(* ------------------------ *)
+prorrogacao_stmt    = "prorrogacao" "(" expr ")" comando ;
 
-atribuicao_opt  = atribuicao | /* vazio */ ;
-expr_opt        = expr | /* vazio */ ;
+(* ------------------------ *)
+(* Loop for                 *)
+(* ------------------------ *)
+acrescimos_stmt     = "acrescimos" "("
+                        atribuicao_opt ";" expr_opt ";" atribuicao_opt
+                      ")" comando ;
+atribuicao_opt      = atribuicao | /* vazio */ ;
+expr_opt            = expr | /* vazio */ ;
+(* Semântica (informativa): expr_opt vazia ≡ verdadeiro; 
+   atribuicao_opt vazia ≡ nenhum efeito. *)
 
-(* Atribuição *)
-atribuicao      = ident "=" expr ;
+(* ------------------------ *)
+(* Atribuição               *)
+(* ------------------------ *)
+atribuicao          = lvalue "=" expr ;
+lvalue              = ident ;
+(* Sensores são read-only por construção: não são lvalues. *)
 
-(* Ações temáticas *)
-acao            = "chutar" "(" expr ")"          (* intensidade/força *)
-                | "tocar"  "(" ident ")"         (* passar a alguém   *)
-                | "marcar" "(" ident ")" ;       (* marcar jogador   *)
+(* ------------------------ *)
+(* Ações temáticas          *)
+(* ------------------------ *)
+acao                = "chutar" "(" expr ")"
+                    | "tocar"  "(" ident ")"
+                    | "marcar" "(" ident ")" ;
 
-(* Saída *)
-gol_stmt        = "gol" "(" expr ")" ;           (* imprime/assinala *)
+(* ------------------------ *)
+(* Saída / print            *)
+(* ------------------------ *)
+gol_stmt            = "gol" "(" expr ")" ;
 
-(* Expressões (booleana: != 0) *)
-expr            = exp_or ;
+(* ------------------------ *)
+(* Expressões               *)
+(* ------------------------ *)
+expr                = exp_or ;
 
-exp_or          = exp_and { "||" exp_and } ;
-exp_and         = exp_eq  { "&&" exp_eq  } ;
-exp_eq          = exp_rel [ ( "==" | "!=" ) exp_rel ] ;
-exp_rel         = exp_add [ ( "<" | "<=" | ">" | ">=" ) exp_add ] ;
-exp_add         = exp_mul { ( "+" | "-" ) exp_mul } ;
-exp_mul         = exp_un  { ( "*" | "/" | "%" ) exp_un } ;
-exp_un          = [ "!" | "-" ] exp_prim ;
+exp_or              = exp_and { "||" exp_and } ;
+exp_and             = exp_eq  { "&&" exp_eq  } ;
+exp_eq              = exp_rel [ ( "==" | "!=" ) exp_rel ] ;
+exp_rel             = exp_add [ ( "<" | "<=" | ">" | ">=" ) exp_add ] ;
+exp_add             = exp_mul { ( "+" | "-" ) exp_mul } ;
+exp_mul             = exp_un  { ( "*" | "/" | "%" ) exp_un } ;
+exp_un              = [ "!" | "-" ] exp_prim ;
 
-exp_prim        = numero
-                | booleano
-                | sensor
-                | ident
-                | "(" expr ")" ;
+exp_prim            = numero
+                    | booleano
+                    | sensor
+                    | ident
+                    | "(" expr ")" ;
 
-(* Sensores read-only *)
-sensor          = "placar" | "tempo" | "estadio" ;
+(* ------------------------ *)
+(* Sensores (read-only)     *)
+(* ------------------------ *)
+sensor              = "placar" | "tempo" | "estadio" ;
 
-(* Literais *)
-booleano        = "verdadeiro" | "falso" ;
-numero          = digito { digito } ;
+(* ------------------------ *)
+(* Literais                 *)
+(* ------------------------ *)
+booleano            = "verdadeiro" | "falso" ;
+numero              = digito { digito } ;
 
-(* Léxicos *)
-ident           = letra { letra | digito | "_" } ;
-letra           = "A" | ... | "Z" | "a" | ... | "z" ;
-digito          = "0" | ... | "9" ;
+(* ------------------------ *)
+(* Léxicos                  *)
+(* ------------------------ *)
+ident               = !palavra_reservada letra { letra | digito | "_" } ;
+(* ↑ ident NÃO pode ser palavra reservada *)
 
-(* Operadores e pontuação reconhecidos:
-   =  == != < <= > >=  + - * / %  && ||  !  ; , ( ) { }
-*)
+palavra_reservada   = "jogador" | "cartao" | "substituicao" | "prorrogacao"
+                    | "acrescimos" | "gol" | "chutar" | "tocar" | "marcar"
+                    | "verdadeiro" | "falso" | "placar" | "tempo" | "estadio" ;
 
-(* Precedência (maior → menor):
-   1) unários: !  - 
+letra               = "A" | ... | "Z" | "a" | ... | "z" ;
+digito              = "0" | ... | "9" ;
+
+(* ------------------------ *)
+(* Operadores & pontuação   *)
+(* (reconhecidos pelo léxico) *)
+(* =  == != < <= > >=  + - * / %  && ||  !  ; , ( ) { } *)
+(* ------------------------ *)
+
+(* ------------------------ *)
+(* Comentários e espaços    *)
+(* ------------------------ *)
+espaco              = " " | "\t" | "\r" | "\n" ;
+comentario_linha    = "//" { qualquer } "\n" ;
+comentario_bloco    = "/*" { qualquer } "*/" ;
+(* O analisador léxico deve ignorar espacos e comentários. *)
+qualquer            = ? qualquer caractere não termina o comentário ? ;
+
+(* ------------------------ *)
+(* Precedência (maior→menor) *)
+(* 1) unários: !  - 
    2) *  /  %
    3) +  -
    4) <  <=  >  >=
    5) ==  !=
    6) &&
-   7) ||
-*)
+   7) ||                                           *)
+(* ------------------------ *)
