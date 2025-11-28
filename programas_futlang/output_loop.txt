@@ -1,0 +1,13 @@
+Loaded program from: programas_futlang/ex_loops.mwasm
+TIME: 1
+TIME: 2
+TIME: 3
+TIME: 4
+TIME: 5
+TIME: 0
+TIME: 1
+TIME: 2
+BEEEEEEP!
+Final state: {'TIME': 3, 'POWER': 0}
+Final readonly state: {'TEMP': 0, 'WEIGHT': 100}
+Final stack: []

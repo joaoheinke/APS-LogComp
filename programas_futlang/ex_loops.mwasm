@@ -1,0 +1,31 @@
+; FutLang de referência (versão simplificada p/ VM):
+; // while temático: dx+dy > 0 → executa 5 iterações simbólicas
+; prorrogacao (...) { marcar(zagueiro); /*simbolizamos imprimindo contagem*/ }
+; // for temático: i = 0..2 → gol(i)
+; acrescimos (jogador i=0; i<3; i=i+1) { gol(i); }
+
+; Parte 1: while — usaremos POWER como contador de 5 “ticks” e TIME como índice impresso
+    SET POWER 5         ; “dx+dy” agregado (5 iterações)
+    SET TIME 0          ; acumulador/contador visível no PRINT
+
+while:
+    DECJZ POWER for_init
+    INC TIME
+    PRINT               ; imprime 1,2,3,4,5 (simboliza corpo do while)
+    GOTO while
+
+for_init:
+; Parte 2: for (i=0; i<3; i++)
+    SET TIME 0          ; i = 0
+    SET POWER 3         ; usaremos POWER como “restam 3 iterações”
+
+for_check:
+    DECJZ POWER for_end
+; corpo: gol(i)  → imprimir i
+    PRINT               ; imprime 0,1,2
+; step: i++
+    INC TIME
+    GOTO for_check
+
+for_end:
+    HALT

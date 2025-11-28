@@ -1,0 +1,28 @@
+; FutLang de referência:
+; jogador goleiro = 1;
+; cartao (placar > 0) { chutar(90); } substituicao { tocar(goleiro); }
+; gol(goleiro);
+
+; MicrowaveVM — ISA usada: SET/INC/DECJZ/GOTO/PRINT/HALT
+; Observação: PRINT imprime o registrador TIME.
+
+; Vamos interpretar "placar > 0" como "TIME > 0".
+; Truque com DECJZ: ele decrementa e pula se o resultado for zero.
+; Se TIME = 1  → vira 0 e salta para else
+; Se TIME ≥ 2 → vira ≥1 e NÃO salta (entra no if)
+
+    SET TIME 2          ; “placar” positivo (ajuste para testar o else)
+    DECJZ TIME else     ; se TIME virar 0, pula pro else
+
+; --- if (TIME > 0): chutar(90)
+    SET TIME 90
+    PRINT               ; imprime 90 (ato simbólico do “chutar(90)”)
+    GOTO fim
+
+else:
+; --- else: tocar(goleiro)  (goleiro = 1)
+    SET TIME 1
+    PRINT               ; imprime 1 (ato simbólico do “tocar(goleiro)”)
+
+fim:
+    HALT
